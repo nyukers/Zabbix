@@ -1,0 +1,1 @@
+perl /usr/lib/zabbix/externalscripts/printmsg.pl 192.168.1.182 print_me_srting

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-$linux="snmpwalk -v 2c -c sunhose -O vQ ".$ARGV[0]." .1.3.6.1.2.1.47.1.1.1.1.13";
+$linux="snmpwalk -v 2c -c ".$ARGV[1]." -O vQ ".$ARGV[0]." .1.3.6.1.2.1.47.1.1.1.1.13";
 
 @model = `$linux`;
 
@@ -8,7 +8,7 @@ chomp(@model);
 
 @model = grep {! $tmp{$_}++ } @model;
 
-$linux="snmpwalk -v 2c -c sunhose -O vQ ".$ARGV[0]." .1.3.6.1.2.1.47.1.1.1.1.11";
+$linux="snmpwalk -v 2c -c ".$ARGV[1]." -O vQ ".$ARGV[0]." .1.3.6.1.2.1.47.1.1.1.1.11";
 
 @sn = `$linux`;
 

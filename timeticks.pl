@@ -12,8 +12,6 @@ use Net::SNMP; #Подключение библиотеки для работы с SNMP
 my $snmp_host = $ARGV[0];
 my $snmp_community = $ARGV[1];
 
-#my $snmp_community = 'sunhose';
-
 my $snmp_oid = '1.3.6.1.2.1.1.3.0';
 
 my $snmp_session = Net::SNMP->session(
