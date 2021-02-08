@@ -1,0 +1,16 @@
+Configuration
+  Templates
+    Template App SSH Service
+  Full Clone
+    Template App SSH Port Service
+  Add
+
+  Templates
+    Template App SSH Port Service
+      Items
+        SSH service is running
+          Key: net.tcp.service[ssh,,{$SSH_PORT}]
+          Update interval: 30s
+      Macros
+        {$SSH_PORT}=22
+		

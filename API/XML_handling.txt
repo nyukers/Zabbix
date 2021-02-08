@@ -1,0 +1,28 @@
+ќбработка XML файлов
+xmlstarlet
+
+# apt install xmlstarlet
+
+»сходный файл
+
+$ cat dump.xml
+
+  <content id="134669" includeTime="2015-01-07T18:48:02" entryType="1" blockType="domain">
+    <decision date="2014-11-26" number="2-4714/2014" org="corp1"/>
+    <domain><![CDATA[vulkanplay.com]]></domain>
+    <ip>78.140.175.198</ip>
+  </content> 
+
+ќбработка
+
+$ cat dump.xml | xmlstarlet sel -T -t -m '//content[@entryType<=3 and @blockType="domain"]' -v domain -o ' ' -v ip -n 
+
+–езультат
+
+vulkanplay.com 78.140.175.198
+sex-money.ru 94.242.203.110
+prasavda.com 91.224.160.109
+play-gmslots.com 5.187.1.216
+russiangirl.su 8.140.172.125
+wiol.biz 185.59.103.2 
+
