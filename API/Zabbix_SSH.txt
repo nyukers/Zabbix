@@ -12,5 +12,5 @@ Configuration
           Key: net.tcp.service[ssh,,{$SSH_PORT}]
           Update interval: 30s
       Macros
-        {$SSH_PORT}=22
+        {$SSH_PORT}=2222
 		

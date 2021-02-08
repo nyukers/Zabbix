@@ -1,5 +1,5 @@
 ###########################################
-# Минимальная конфигурация Zabbix-агента, включая PSK, passive mode
+# Минимальная конфигурация Zabbix-агента, рassive mode, включая PSK
 # (С)Лохтуров Вячеслав, 2021
 
 gate-agent# grep -v '^#\|^$' /etc/zabbix/zabbix_agentd.conf
@@ -14,24 +14,24 @@ ListenPort=10050
 # must match hostname as configured on the server
 # Иначе в журнале будут сообщения: cannot send list of active checks
 
-
 #TLSConnect=psk
-#TLSAccept=psk
 #TLSAccept=unencrypted,psk
 #TLSPSKFile=/etc/zabbix/zabbix_agentd.psk
 #TLSPSKIdentity=gate
 
+# генерация PSK-ключа, можно выполнить где угодно.
 gate-agent# openssl rand -hex 32 > /etc/zabbix/zabbix_agentd.psk
 
 gate-agent# scp /etc/zabbix/zabbix_agentd.psk server:gate.psk
 
 gate-agent# service zabbix-agent restart
 
+# проверка
 server# zabbix_get -s gate -k agent.version --tls-connect=psk --tls-psk-identity="gate" --tls-psk-file=gate.psk
 
 server# zabbix_get -s IP/DNSNAME -p 10050 -k agent.version
 
-# Минимальная конфигурация Zabbix-агента, включая PSK, active mode
+# Минимальная конфигурация Zabbix-агента, active mode, без определенного IP сервера
 ...
 #Server=server
 ListenIP=0.0.0.0
