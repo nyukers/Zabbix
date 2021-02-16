@@ -1,4 +1,5 @@
-Perl script aвторисования топологии сети в Zabbix (2015)
+Perl script aвторисования топологии сети в Zabbix (2015).
+I found it here: 
 <a href="https://www.zabbix.com/forum/in-russian/44171-perl-script-%D0%90%D0%B2%D1%82%D0%BE%D1%80%D0%B8%D1%81%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F-%D1%82%D0%BE%D0%BF%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D0%B8-%D1%81%D0%B5%D1%82%D0%B8-%D0%B2-zabbix" target="_blank">Zabbix forum</a>
 
 ===INSTALL===
@@ -7,15 +8,25 @@ Perl script aвторисования топологии сети в Zabbix (201
  (*Centos 7)
  yum install graphviz perl-JSON-PP perl-libwww-perl perl-version gcc net-snmp-perl net-snmp net-snmp-devel perl-SNMP_Session perl-CPAN perl-YAML
 
-3. Установить perl модуль для работы с ZABBIX API
+3. Установить perl модуль для работы с ZABBIX API:
 
 3.1. Взять готовый  пакет
-  https://copr-be.cloud.fedoraproject.org/results/ksyz/el7-perl/epel-7-x86_64/
-в папке
-  *perl-Net-Zabbix
+https://copr-be.cloud.fedoraproject.org/results/ksyz/el7-perl/epel-7-x86_64/
+в папке *perl-Net-Zabbix
 
-   wget https://copr-be.cloud.fedoraproject.org/results/ksyz/el7-perl/epel-7-x86_64/00146740-perl-Net-Zabbix/perl-Net-Zabbix-2.00-1.el7.centos.noarch.rpm
-   yum localinstall perl-Net-Zabbix-2.00-1.el7.centos.noarch.rpm
+wget https://copr-be.cloud.fedoraproject.org/results/ksyz/el7-perl/epel-7-x86_64/00146740-perl-Net-Zabbix/perl-Net-Zabbix-2.00-1.el7.centos.noarch.rpm
+yum localinstall perl-Net-Zabbix-2.00-1.el7.centos.noarch.rpm
+
+ИЛИ 
+
+cd /etc/yum.repos.d/
+wget https://download.opensuse.org/repositories/home:csbuild:Perl/CentOS_7/home:csbuild:Perl.repo
+sudo yum install perl-Net-SNMP
+
+ИЛИ
+
+sudo yum install epel-release
+sudo yum --enablerepo=PowerTools,epel install perl-Net-SNMP
 
 3.2. Или собираем под себя https://github.com/ksyz/Net-Zabbix
 
@@ -38,19 +49,19 @@ Perl script aвторисования топологии сети в Zabbix (201
   $zapi::zab_pass="passwd"; #Пароль
   my $offset = 100;  #Отступ от краев карты
 
-===USE===
+=== USE ===
   perl map_zab.pl <Имя группы в заббиксе свитчей> <Имя группы в заббиксе шлюзов> <Имя группы в заббиксе устройств с LLDP>
 В итоге получаем два файла pdf, svg в которых graphiz отрисовал примерную карту, а так же получаем в заббиксе карту(или не получаем)
 
 Кроме как рисовать карту скрипт так же переименовывает автоматически хосты, при условии если ip совпадает с именем хоста, иначе не трогает ничего
 
-===PRODUCTION===
+=== PRODUCTION ===
 Шутка, нафиг костыли в продакшн. Это скорее для наглядности и в документацию на один раз.
 
-===HOW IT WORKS===
+=== HOW IT WORKS ===
 Для работы важно чтобы устройства поддерживали протокол LLDP и он был верно настроен, если устройство видит соседей, то скрипт тоже подтянет данные.
 
-===FDB===
+=== FDB ===
 Думал прикруть еще определение соседей по FDB таблицам для не поддерживающих LLDP устройств(cisco\mikrotik и прочие), но посмотрев зоопарк OIDов
 решил отложить(да и не надежно это, надо пинговать броадкастить со всех сторон, чтобы правильно увидели друг друга).
 И на будущее поставил галочку насчет планирования сети, что надо учитывать, либо все CDP, либо все LLDP, не надо смешивать :(
