@@ -1,5 +1,5 @@
 Perl script aвторисования топологии сети в Zabbix (2015)
-Link to forum
+<a href="https://www.zabbix.com/forum/in-russian/44171-perl-script-%D0%90%D0%B2%D1%82%D0%BE%D1%80%D0%B8%D1%81%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F-%D1%82%D0%BE%D0%BF%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D0%B8-%D1%81%D0%B5%D1%82%D0%B8-%D0%B2-zabbix" target="_blank">Zabbix forum</a>
 
 ===INSTALL===
 1. Перекреcтиться
@@ -57,6 +57,3 @@ Link to forum
 
 PS До этого перл даже пальцем не тыкал, первый забег, критика и советы как лучше приветствуются.
 
-2015
-
-https://www.zabbix.com/forum/in-russian/44171-perl-script-%D0%90%D0%B2%D1%82%D0%BE%D1%80%D0%B8%D1%81%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F-%D1%82%D0%BE%D0%BF%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D0%B8-%D1%81%D0%B5%D1%82%D0%B8-%D0%B2-zabbix
