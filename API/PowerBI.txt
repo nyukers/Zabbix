@@ -1,0 +1,128 @@
+Сегодня я покажу вам как можно легко подключить Power BI Desktop к Zabbix используя API последнего.
+
+Оригинал идеи был найден здесь
+https://www.spikefishsolutions.com/post/connecting-power-bi-desktop-to-zabbix
+
+Итак для начала в Power Query Editor надо создать три параметра.
+
+Пользователь для подключения как
+User parameter: Admin 
+
+Его пароль как
+Password parameter: Adminpsw
+
+И строка подключения(зависит от версии Zabbix) как
+ZabbixURL parameter: http://192.168.1.100/api_jsonrpc.php
+
+Для множественного использования API рекомендуется получить токен Zabbix.
+
+Для этого пишем запрос Power Query Editor как
+GetZabbixToken query:
+
+let
+    user=User,
+    password=Password,
+    url=ZabbixURL,
+    Body = "{
+        ""jsonrpc"": ""2.0"",
+        ""method"": ""user.login"",
+        ""params"": {
+            ""user"":""" & user & """, 
+            ""password"":""" & password & """
+        },
+        ""auth"": null,
+        ""id"": 1
+    }",
+    Source = Json.Document (
+        Web.Contents(
+            url,
+            [
+                Headers=[
+                    #"Content-Type"="application/json"
+                ],
+                Content = Text.ToBinary(Body)
+            ]
+        )
+    )
+in
+    Source
+
+Получаем токен в виде: c7f96a475ddede1cc52f14e30f15b109
+Теперь GetZabbixToken query можете отключить, он далее будет не нужен.
+
+Создаем еще один параметр, который принимает значение как результата запроса GetZabbixToken,
+а именно ZabbixToken parameter: c7f96a475ddede1cc52f14e30f15b109
+
+Момент настал. Потренируемся в Power BI, выполним первый запрос к Zabbix и узнаем какие же 
+учетные записи он содержит.
+Код GetZabbixUser query:
+
+let
+    token = ZabbixToken,
+    Body =
+    "{
+        ""jsonrpc"": ""2.0"",
+        ""method"": ""user.get"",
+        ""params"": {
+            ""output"": ""extend""
+        },
+        ""auth"": """ & token & """,
+        ""id"": 1
+    }",
+    Source = Json.Document(
+        Web.Contents(
+            ZabbixURL,
+            [
+                Headers=[
+                    #"Content-Type"="application/json"
+                ],
+                Content = Text.ToBinary(Body)
+            ]
+        )
+    ),
+    result = Source[result],
+    #"Converted to Table" = Table.FromList(result, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+    #"Expanded Column1" = Table.ExpandRecordColumn(#"Converted to Table", "Column1", {"userid", "alias", "name", "surname", "url", "autologin", "autologout", "lang", "refresh", "type", "theme", "attempt_failed", "attempt_ip", "attempt_clock", "rows_per_page"}, {"userid", "alias", "name", "surname", "url", "autologin", "autologout", "lang", "refresh", "type", "theme", "attempt_failed", "attempt_ip", "attempt_clock", "rows_per_page"})
+in
+    #"Expanded Column1"
+
+Результат запроса.
+
+А теперь узнаем какие же хосты он мониторит.
+Внимание - установите параметр ‘selectInventory’ в ‘true’.
+Код GetZabbixHost query:
+
+let
+    token = ZabbixToken,
+    Body =
+    "{
+        ""jsonrpc"": ""2.0"",
+        ""method"": ""host.get"",
+        ""params"": {
+            ""selectInventory"":true,
+            ""output"": ""extend""
+        },
+        ""auth"": """ & token & """,
+        ""id"": 1
+    }",
+    Source = Json.Document(
+        Web.Contents(
+            ZabbixURL,
+            [
+                Headers=[
+                    #"Content-Type"="application/json"
+                ],
+                Content = Text.ToBinary(Body)
+            ]
+        )
+    ),
+    result = Source[result],
+    #"Converted to Table" = Table.FromList(result, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+    #"Expanded Column1" = Table.ExpandRecordColumn(#"Converted to Table", "Column1", {"hostid", "proxy_hostid", "host", "status", "disable_until", "error", "available", "errors_from", "lastaccess", "ipmi_authtype", "ipmi_privilege", "ipmi_username", "ipmi_password", "ipmi_disable_until", "ipmi_available", "snmp_disable_until", "snmp_available", "maintenanceid", "maintenance_status", "maintenance_type", "maintenance_from", "ipmi_errors_from", "snmp_errors_from", "ipmi_error", "snmp_error", "jmx_disable_until", "jmx_available", "jmx_errors_from", "jmx_error", "name", "flags", "templateid", "description", "tls_connect", "tls_accept", "tls_issuer", "tls_subject", "tls_psk_identity", "tls_psk", "proxy_address", "auto_compress", "discover", "inventory_mode", "inventory"}, {"hostid", "proxy_hostid", "host", "status", "disable_until", "error", "available", "errors_from", "lastaccess", "ipmi_authtype", "ipmi_privilege", "ipmi_username", "ipmi_password", "ipmi_disable_until", "ipmi_available", "snmp_disable_until", "snmp_available", "maintenanceid", "maintenance_status", "maintenance_type", "maintenance_from", "ipmi_errors_from", "snmp_errors_from", "ipmi_error", "snmp_error", "jmx_disable_until", "jmx_available", "jmx_errors_from", "jmx_error", "name", "flags", "templateid", "description", "tls_connect", "tls_accept", "tls_issuer", "tls_subject", "tls_psk_identity", "tls_psk", "proxy_address", "auto_compress", "discover", "inventory_mode", "inventory"}),
+    #"FILTER: inventory_mode = 1" = Table.SelectRows(#"Expanded Column1", each ([inventory_mode] = "1")),
+    #"Expanded inventory" = Table.ExpandRecordColumn(#"FILTER: inventory_mode = 1", "inventory", {"type", "type_full", "name", "alias", "os", "os_full", "os_short", "serialno_a", "serialno_b", "tag", "asset_tag", "macaddress_a", "macaddress_b", "hardware", "hardware_full", "software", "software_full", "software_app_a", "software_app_b", "software_app_c", "software_app_d", "software_app_e", "contact", "location", "location_lat", "location_lon", "notes", "chassis", "model", "hw_arch", "vendor", "contract_number", "installer_name", "deployment_status", "url_a", "url_b", "url_c", "host_networks", "host_netmask", "host_router", "oob_ip", "oob_netmask", "oob_router", "date_hw_purchase", "date_hw_install", "date_hw_expiry", "date_hw_decomm", "site_address_a", "site_address_b", "site_address_c", "site_city", "site_state", "site_country", "site_zip", "site_rack", "site_notes", "poc_1_name", "poc_1_email", "poc_1_phone_a", "poc_1_phone_b", "poc_1_cell", "poc_1_screen", "poc_1_notes", "poc_2_name", "poc_2_email", "poc_2_phone_a", "poc_2_phone_b", "poc_2_cell", "poc_2_screen", "poc_2_notes"}, {"inventory.type", "inventory.type_full", "inventory.name", "inventory.alias", "inventory.os", "inventory.os_full", "inventory.os_short", "inventory.serialno_a", "inventory.serialno_b", "inventory.tag", "inventory.asset_tag", "inventory.macaddress_a", "inventory.macaddress_b", "inventory.hardware", "inventory.hardware_full", "inventory.software", "inventory.software_full", "inventory.software_app_a", "inventory.software_app_b", "inventory.software_app_c", "inventory.software_app_d", "inventory.software_app_e", "inventory.contact", "inventory.location", "inventory.location_lat", "inventory.location_lon", "inventory.notes", "inventory.chassis", "inventory.model", "inventory.hw_arch", "inventory.vendor", "inventory.contract_number", "inventory.installer_name", "inventory.deployment_status", "inventory.url_a", "inventory.url_b", "inventory.url_c", "inventory.host_networks", "inventory.host_netmask", "inventory.host_router", "inventory.oob_ip", "inventory.oob_netmask", "inventory.oob_router", "inventory.date_hw_purchase", "inventory.date_hw_install", "inventory.date_hw_expiry", "inventory.date_hw_decomm", "inventory.site_address_a", "inventory.site_address_b", "inventory.site_address_c", "inventory.site_city", "inventory.site_state", "inventory.site_country", "inventory.site_zip", "inventory.site_rack", "inventory.site_notes", "inventory.poc_1_name", "inventory.poc_1_email", "inventory.poc_1_phone_a", "inventory.poc_1_phone_b", "inventory.poc_1_cell", "inventory.poc_1_screen", "inventory.poc_1_notes", "inventory.poc_2_name", "inventory.poc_2_email", "inventory.poc_2_phone_a", "inventory.poc_2_phone_b", "inventory.poc_2_cell", "inventory.poc_2_screen", "inventory.poc_2_notes"})
+in
+    #"Expanded inventory"
+
+Результат запроса.
+
